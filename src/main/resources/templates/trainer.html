@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Trainer Dashboard</title>
+</head>
+<body>
+<h1>Welcome, Trainer!</h1>
+
+<a th:href="@{/logout}">Logout</a>
+
+<h2>Your Trainees</h2>
+
+<div th:if="${trainer != null}">
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Member Name</th>
+            <th>Contact</th>
+            <th>Payment Plan</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="member : ${trainer.members}">
+            <td th:text="${member.name}">Member Name</td>
+            <td th:text="${member.contact}">Contact</td>
+            <td th:text="${member.paymentPlanType}">Plan</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:if="${trainer.members.size() == 0}">
+    <p>You don't have any assigned members yet.</p>
+</div>
+
+<div>
+    <form th:action="@{/trainer/update-availability}" method="post">
+        <table>
+            <tr>
+                <th>Day</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+            </tr>
+            <tr th:each="day : ${T(java.time.DayOfWeek).values()}">
+                <td th:text="${day}"></td>
+                <td>
+                    <input type="time" name="startTimeMap[__${day}__]"/>
+                </td>
+                <td>
+                    <input type="time" name="endTimeMap[__${day}__]"/>
+                </td>
+            </tr>
+        </table>
+        <button type="submit">Save Availability</button>
+    </form>
+
+</div>
+
+</body>
+</html>

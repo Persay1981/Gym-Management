@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Trainer Dashboard</title>
+</head>
+<body>
+<h1>Welcome, Trainer!</h1>
+
+<a th:href="@{/logout}">Logout</a>
+
+<h2>Your Trainees</h2>
+
+<div th:if="${trainer != null}">
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Member Name</th>
+            <th>Contact</th>
+            <th>Payment Plan</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="member : ${trainer.members}">
+            <td th:text="${member.name}">Member Name</td>
+            <td th:text="${member.contact}">Contact</td>
+            <td th:text="${member.paymentPlanType}">Plan</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:if="${trainer.members.size() == 0}">
+    <p>You don't have any assigned members yet.</p>
+</div>
+
+<div>
+    <form th:action="@{/trainer/update-availability}" method="post">
+        <h2>Set Your Available Time Slots</h2>
+
+        <div th:each="slot : ${availableSlots}">
+            <input type="checkbox" name="selectedSlots"
+                   th:value="${slot.id}"
+                   th:checked="${trainer.availableSlots.contains(slot)}" />
+            <label th:text="${slot.dayOfWeek + ' ' + slot.startTime + ' - ' + slot.endTime}"></label><br/>
+        </div>
+
+        <button type="submit">Update Availability</button>
+    </form>
+</div>
+
+</body>
+</html>

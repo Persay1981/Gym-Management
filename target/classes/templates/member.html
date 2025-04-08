@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Member Dashboard</title>
+    <script>
+        function togglePlanFields() {
+            const packageSelect = document.getElementById("packageSelect");
+            const packagePlanRadio = document.getElementById("packagePlan");
+
+            if (packagePlanRadio.checked) {
+                packageSelect.disabled = false;
+            } else {
+                packageSelect.disabled = true;
+            }
+        }
+
+        window.unload = togglePlanFields;
+    </script>
+</head>
+<body>
+<h1>Welcome, <span th:text="${member.name}"></span>!</h1>
+
+<!-- Display current trainer -->
+<div>
+    <h2>Your Trainer</h2>
+    <div th:if="${member.trainer != null}">
+        <p>Current Trainer: <span th:text="${member.trainer.name}"></span></p>
+        <form th:action="@{/member/change-trainer}" method="post">
+            <label>Select New Trainer:</label>
+            <select name="trainerId" required>
+                <option th:each="trainer : ${trainers}"
+                        th:value="${trainer.trainerId}"
+                        th:text="${trainer.name}">
+                </option>
+            </select>
+            <button type="submit">Change Trainer</button>
+        </form>
+    </div>
+    <div th:if="${member.trainer == null}">
+        <p>You have not selected a trainer yet.</p>
+        <form th:action="@{/member/choose-trainer}" method="post">
+            <label>Select Trainer:</label>
+            <select name="trainerId" required>
+                <option th:each="trainer : ${trainers}"
+                        th:value="${trainer.trainerId}"
+                        th:text="${trainer.name}">
+                </option>
+            </select>
+            <button type="submit">Choose Trainer</button>
+        </form>
+    </div>
+</div>
+
+<!-- Plan selection and update -->
+<div>
+    <h2 th:text="${member.paymentPlanType == null ? 'Choose Your Plan' : 'Update Your Plan'}"></h2>
+
+    <form th:action="@{/member/update-plan}" method="post">
+        <div class="form-group">
+            <label>Choose Plan:</label>
+            <div class="radio-group">
+                <input type="radio" name="paymentPlanType" value="SessionPerWeek" id="sessionPerWeek"
+                       th:checked="${member.paymentPlanType == 'SessionPerWeek'}" required/>
+                <label for="sessionPerWeek">Session Per Week Plan</label>
+            </div>
+            <div class="radio-group">
+                <input type="radio" name="paymentPlanType" value="Package" id="packagePlan"
+                       th:checked="${member.paymentPlanType == 'Package'}" required/>
+                <label for="packagePlan">Package Plan</label>
+            </div>
+        </div>
+
+        <div class="form-group" th:if="${packages.size() > 0}">
+            <label>Select Package:</label>
+            <select name="packageId" th:disabled="${member.paymentPlanType != 'Package'}">
+                <option th:each="package : ${packages}"
+                        th:value="${package.packageId}"
+                        th:text="${package.name}"
+                        th:selected="${member.gymPackage != null and member.gymPackage.packageId == package.packageId}">
+                </option>
+            </select>
+        </div>
+
+        <div th:if="${member.paymentPlanType == 'SessionPerWeek'}">
+            <h3>Select Preferred Day and Time Slots</h3>
+            <div th:each="slot : ${availableSlots}">
+                <label>
+                    <input type="checkbox" name="preferredSlotIds"
+                           th:value="${slot.id}"
+                           th:checked="${member.preferredSlots != null and member.preferredSlots.contains(slot)}" />
+                    <span th:text="${slot.dayOfWeek + ' - ' + slot.time}"></span>
+                </label><br/>
+            </div>
+        </div>
+
+
+
+
+        <button type="submit" th:text="${member.paymentPlanType == null ? 'Save Plan' : 'Update Plan'}"></button>
+    </form>
+</div>
+
+<!-- Logout -->
+<div>
+    <br />
+    <a th:href="@{/logout}">Logout</a>
+</div>
+</body>
+</html>

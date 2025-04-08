@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Signup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            text-align: left;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            font-size: 18px;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .radio-group {
+            margin: 10px 0;
+        }
+        .button {
+            padding: 12px 24px;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .error-message {
+            color: red;
+        }
+    </style>
+    <script>
+        function validatePassword(event) {
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const error = document.getElementById("error-message");
+
+            if (password !== confirmPassword) {
+                error.textContent = "Passwords do not match";
+                event.preventDefault();
+                return false;
+            }
+            error.textContent = "";
+            return true;
+        }
+    </script>
+</head>
+<body>
+<h1>Create Your Account</h1>
+<div class="form-container">
+    <form th:action="@{/signup}" th:object="${userDTO}" method="post" onsubmit="return validatePassword(event)">
+        <div class="form-group">
+            <label>Select Role:</label>
+            <select th:field="*{role}" required>
+                <option value="MEMBER">Member</option>
+                <option value="TRAINER">Trainer</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Name:</label>
+            <input type="text" th:field="*{name}" required/>
+        </div>
+
+        <div class="form-group">
+            <label>Contact No:</label>
+            <input type="text" th:field="*{contact}" required/>
+        </div>
+
+<!--        <div class="form-group">-->
+<!--            <label>Choose Plan:</label>-->
+<!--            <div class="radio-group">-->
+<!--                <input type="radio" th:field="*{paymentPlanType}" value="SessionPerWeek" id="sessionPerWeek"/>-->
+<!--                <label for="sessionPerWeek">Session Per Week Plan</label>-->
+<!--            </div>-->
+<!--            <div class="radio-group">-->
+<!--                <input type="radio" th:field="*{paymentPlanType}" value="Package" id="packagePlan"/>-->
+<!--                <label for="packagePlan">Package Plan</label>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="form-group" th:if="${packages.size() > 0}">-->
+<!--            <label>Select Package:</label>-->
+<!--            <select th:field="*{gymPackage.packageId}">-->
+<!--                <option th:each="package : ${packages}"-->
+<!--                        th:value="${package.packageId}"-->
+<!--                        th:text="${package.name}"></option>-->
+<!--            </select>-->
+<!--        </div>-->
+
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" th:field="*{username}" required/>
+        </div>
+
+        <div class="form-group">
+            <label>Set Password:</label>
+            <input type="password" id="password" th:field="*{password}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Confirm Password:</label>
+            <input type="password" id="confirmPassword" required />
+            <span id="error-message" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="button">Sign Up</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

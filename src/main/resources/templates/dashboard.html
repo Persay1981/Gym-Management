@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<h1>Welcome to the Gym Management System</h1>
+
+<div th:if="${#authentication.principal.role} == 'ADMIN'">
+    <a th:href="@{/admin}">Admin Panel</a>
+</div>
+
+<div th:if="${#authentication.principal.role} == 'TRAINER'">
+    <a th:href="@{/trainer}">Trainer Panel</a>
+</div>
+
+<div th:if="${#authentication.principal.role} == 'MEMBER'">
+    <a th:href="@{/member}">Member Panel</a>
+</div>
+
+<form method="post" action="/logout">
+    <button type="submit">Logout</button>
+</form>
+</body>
+</html>

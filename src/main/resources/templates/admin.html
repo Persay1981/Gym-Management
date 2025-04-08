@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+<h1>Welcome, Admin!</h1>
+<a th:href="@{/logout}">Logout</a>
+
+<h2>Pending Trainer Requests</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Username</th>
+        <th>Contact</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="trainer : ${pendingTrainers}">
+        <td th:text="${trainer.name}"></td>
+        <td th:text="${trainer.username}"></td>
+        <td th:text="${trainer.contact}"></td>
+        <td>
+            <form th:action="@{/admin/approveTrainer}" method="post" style="display: inline;">
+                <input type="hidden" name="username" th:value="${trainer.username}"/>
+                <button type="submit">Approve</button>
+            </form>
+            <form th:action="@{/admin/rejectTrainer}" method="post" style="display: inline;">
+                <input type="hidden" name="username" th:value="${trainer.username}"/>
+                <button type="submit">Reject</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
