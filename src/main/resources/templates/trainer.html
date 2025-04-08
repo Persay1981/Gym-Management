@@ -44,17 +44,19 @@
             <tr th:each="day : ${T(java.time.DayOfWeek).values()}">
                 <td th:text="${day}"></td>
                 <td>
-                    <input type="time" name="startTimeMap[__${day}__]"/>
+                    <input type="time" th:name="'startTimeMap[' + ${day} + ']'" />
                 </td>
                 <td>
-                    <input type="time" name="endTimeMap[__${day}__]"/>
+                    <input type="time" th:name="'endTimeMap[' + ${day} + ']'" />
                 </td>
             </tr>
+
         </table>
         <button type="submit">Save Availability</button>
     </form>
-
 </div>
+
+
 
 </body>
 </html>

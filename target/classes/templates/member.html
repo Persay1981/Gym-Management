@@ -81,24 +81,124 @@
             </select>
         </div>
 
-        <div th:if="${member.paymentPlanType == 'SessionPerWeek'}">
-            <h3>Select Preferred Day and Time Slots</h3>
-            <div th:each="slot : ${availableSlots}">
-                <label>
-                    <input type="checkbox" name="preferredSlotIds"
-                           th:value="${slot.id}"
-                           th:checked="${member.preferredSlots != null and member.preferredSlots.contains(slot)}" />
-                    <span th:text="${slot.dayOfWeek + ' - ' + slot.time}"></span>
-                </label><br/>
-            </div>
-        </div>
-
-
-
+<!--        <div th:if="${member.paymentPlanType == 'SessionPerWeek'}">-->
+<!--            <h3>Select Preferred Day and Time Slots</h3>-->
+<!--            <div th:each="slot : ${availableSlots}">-->
+<!--                <label>-->
+<!--                    <input type="checkbox" name="preferredSlotIds"-->
+<!--                           th:value="${slot.id}"-->
+<!--                           th:checked="${member.preferredSlots != null and member.preferredSlots.contains(slot)}" />-->
+<!--                    <span th:text="${slot.dayOfWeek + ' - ' + slot.time}"></span>-->
+<!--                </label><br/>-->
+<!--            </div>-->
+<!--        </div>-->
 
         <button type="submit" th:text="${member.paymentPlanType == null ? 'Save Plan' : 'Update Plan'}"></button>
     </form>
 </div>
+
+<h3>Find Available Trainers for Multiple Days</h3>
+
+<form id="availabilityForm" onsubmit="handleTrainerCheck(event)">
+    <table>
+        <tr>
+            <th>Select</th>
+            <th>Day</th>
+            <th>Time</th>
+        </tr>
+        <tr th:each="day : ${T(java.time.DayOfWeek).values()}">
+            <td>
+                <input type="checkbox" name="selectedDays" th:value="${day}" onchange="toggleTimeInput(this)">
+            </td>
+            <td th:text="${day}"></td>
+            <td>
+                <input type="time" name="timeMap[__${day}__]" disabled>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <button type="submit">Check Trainers</button>
+</form>
+
+<div id="multiTrainerResults"></div>
+
+<script>
+    function toggleTimeInput(checkbox) {
+        const row = checkbox.closest("tr");
+        const timeInput = row.querySelector("input[type='time']");
+        timeInput.disabled = !checkbox.checked;
+    }
+
+    function handleTrainerCheck(event) {
+        event.preventDefault();
+
+        const form = document.getElementById("availabilityForm");
+        const selected = Array.from(form.querySelectorAll("input[name='selectedDays']:checked"));
+
+        const resultDiv = document.getElementById("multiTrainerResults");
+        resultDiv.innerHTML = "";
+
+        if (selected.length === 0) {
+            resultDiv.innerHTML = "<p>Please select at least one day.</p>";
+            return;
+        }
+
+        selected.forEach(dayCheckbox => {
+            const day = dayCheckbox.value;
+            const timeInput = dayCheckbox.closest("tr").querySelector("input[type='time']");
+            const time = timeInput.value;
+
+            if (!time) {
+                resultDiv.innerHTML += `<p>Please enter time for ${day}.</p>`;
+                return;
+            }
+
+            fetch(`/member/available-trainers?day=${day}&time=${time}`)
+                .then(response => response.json())
+                .then(data => {
+                    const section = document.createElement("div");
+                    section.innerHTML = `<h4>Available Trainers on ${day} at ${time}</h4>`;
+
+                    if (data.length === 0) {
+                        section.innerHTML += "<p>No trainers available.</p>";
+                    } else {
+                        const form = document.createElement("form");
+                        form.method = "post";
+                        form.action = "/member/select-trainer";
+
+                        const select = document.createElement("select");
+                        select.name = "trainerId";
+
+                        data.forEach(trainer => {
+                            const option = document.createElement("option");
+                            option.value = trainer.id;
+                            option.textContent = trainer.name;
+                            select.appendChild(option);
+                        });
+
+                        const hiddenDay = document.createElement("input");
+                        hiddenDay.type = "hidden";
+                        hiddenDay.name = "day";
+                        hiddenDay.value = day;
+
+                        form.appendChild(select);
+                        form.appendChild(hiddenDay);
+
+                        const submit = document.createElement("button");
+                        submit.type = "submit";
+                        submit.textContent = "Choose Trainer";
+
+                        form.appendChild(submit);
+                        section.appendChild(form);
+                    }
+
+                    resultDiv.appendChild(section);
+                });
+        });
+    }
+</script>
+
+
 
 <!-- Logout -->
 <div>

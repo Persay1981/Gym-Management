@@ -39,6 +39,6 @@ public class Trainer {
             joinColumns = @JoinColumn(name = "trainer_id"),
             inverseJoinColumns = @JoinColumn(name = "day_time_slot_id")
     )
-    private Set<DayTimeSlot> availableSlots;
+    private Set<DayTimeSlot> availableSlots = new HashSet<>();
 
 }

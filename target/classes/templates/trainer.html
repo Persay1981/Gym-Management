@@ -35,18 +35,28 @@
 
 <div>
     <form th:action="@{/trainer/update-availability}" method="post">
-        <h2>Set Your Available Time Slots</h2>
+        <table>
+            <tr>
+                <th>Day</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+            </tr>
+            <tr th:each="day : ${T(java.time.DayOfWeek).values()}">
+                <td th:text="${day}"></td>
+                <td>
+                    <input type="time" th:name="'startTimeMap[' + ${day} + ']'" />
+                </td>
+                <td>
+                    <input type="time" th:name="'endTimeMap[' + ${day} + ']'" />
+                </td>
+            </tr>
 
-        <div th:each="slot : ${availableSlots}">
-            <input type="checkbox" name="selectedSlots"
-                   th:value="${slot.id}"
-                   th:checked="${trainer.availableSlots.contains(slot)}" />
-            <label th:text="${slot.dayOfWeek + ' ' + slot.startTime + ' - ' + slot.endTime}"></label><br/>
-        </div>
-
-        <button type="submit">Update Availability</button>
+        </table>
+        <button type="submit">Save Availability</button>
     </form>
 </div>
+
+
 
 </body>
 </html>

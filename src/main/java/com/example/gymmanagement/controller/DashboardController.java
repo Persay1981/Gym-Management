@@ -4,11 +4,7 @@ import com.example.gymmanagement.model.DayTimeSlot;
 import com.example.gymmanagement.model.Member;
 import com.example.gymmanagement.model.PendingTrainer;
 import com.example.gymmanagement.model.Trainer;
-import com.example.gymmanagement.repository.MemberRepository;
-import com.example.gymmanagement.repository.PackageRepository;
-import com.example.gymmanagement.repository.PendingTrainerRepository;
-import com.example.gymmanagement.repository.TrainerRepository;
-import com.example.gymmanagement.repository.DayTimeSlotRepository;
+import com.example.gymmanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,8 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 import java.util.Optional;
-import java.time.DayOfWeek;
-import java.util.Arrays;
 
 @Controller
 public class DashboardController {
@@ -37,6 +31,9 @@ public class DashboardController {
 
     @Autowired
     private DayTimeSlotRepository dayTimeSlotRepository;
+
+    @Autowired
+    private TrainerSlotRepository trainerSlotRepository;
 
 
     @GetMapping("/dashboard")

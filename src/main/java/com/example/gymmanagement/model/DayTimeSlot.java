@@ -21,6 +21,6 @@ public class DayTimeSlot {
     @Enumerated(EnumType.STRING)
     private DayOfWeek dayOfWeek;
 
-    private String StartTime;
+    private String startTime;
     private String endTime;
 }

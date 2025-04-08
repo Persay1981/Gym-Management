@@ -15,12 +15,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.DayOfWeek;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class MemberController {
@@ -145,12 +145,65 @@ public class MemberController {
                     member.setPreferredSlots(null);
                 }
             }
+//            if ("SessionPerWeek".equals(paymentPlanType) && preferredSlotIds != null) {
+//                Set<DayTimeSlot> selectedSlots = new HashSet<>(dayTimeSlotRepository.findAllById(preferredSlotIds));
+//                member.setPreferredSlots(selectedSlots);
+//            }
 
             memberRepository.save(member);
         }
 
         return "redirect:/dashboard";
     }
+
+    @PostMapping("/member/select-trainer")
+    public String selectTrainer(
+            Authentication authentication,
+            @RequestParam("trainerId") int trainerId
+    ) {
+        String username = authentication.getName();
+        Optional<Member> optionalMember = memberRepository.findByUsername(username);
+        Optional<Trainer> optionalTrainer = trainerRepository.findById(trainerId);
+
+        if (optionalMember.isPresent() && optionalTrainer.isPresent()) {
+            Member member = optionalMember.get();
+            Trainer trainer = optionalTrainer.get();
+
+            member.setTrainer(trainer);
+            memberRepository.save(member);
+        }
+
+        return "redirect:/dashboard";
+    }
+
+    @GetMapping("/member/available-trainers")
+    @ResponseBody
+    public List<Map<String, String>> getAvailableTrainers(
+            @RequestParam("day") DayOfWeek day,
+            @RequestParam("time") String time
+    ) {
+        LocalTime targetTime = LocalTime.parse(time);
+        List<Trainer> allTrainers = trainerRepository.findAll();
+
+        List<Trainer> availableTrainers = allTrainers.stream()
+                .filter(trainer -> trainer.getAvailableSlots().stream().anyMatch(slot ->
+                        slot.getDayOfWeek().equals(day)
+                                && LocalTime.parse(slot.getStartTime()).isBefore(targetTime)
+                                && LocalTime.parse(slot.getEndTime()).isAfter(targetTime)
+                ))
+                .toList();
+
+        return availableTrainers.stream()
+                .map(trainer -> {
+                    Map<String, String> data = new HashMap<>();
+                    data.put("id", String.valueOf(trainer.getTrainerId()));
+                    data.put("name", trainer.getName());
+                    return data;
+                })
+                .collect(Collectors.toList());
+    }
+
+
 
 
 }
