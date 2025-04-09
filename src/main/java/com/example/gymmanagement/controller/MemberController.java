@@ -114,10 +114,6 @@ public class MemberController {
                     member.setPreferredSlots(null);
                 }
             }
-//            if ("SessionPerWeek".equals(paymentPlanType) && preferredSlotIds != null) {
-//                Set<DayTimeSlot> selectedSlots = new HashSet<>(dayTimeSlotRepository.findAllById(preferredSlotIds));
-//                member.setPreferredSlots(selectedSlots);
-//            }
 
             memberRepository.save(member);
         }
@@ -145,32 +141,89 @@ public class MemberController {
         return "redirect:/dashboard";
     }
 
+//    @GetMapping("/member/available-trainers")
+//    @ResponseBody
+//    public List<Map<String, Object>> getAvailableTrainers(
+//            @RequestParam("day") String day,
+//            @RequestParam("time") String time
+//    ) {
+//        List<Trainer> allTrainers = trainerRepository.findAll();
+//
+//        DayOfWeek selectedDay = DayOfWeek.valueOf(day.toUpperCase());
+//        LocalDateTime now = LocalDateTime.now();
+//        int daysUntil = (selectedDay.getValue() - now.getDayOfWeek().getValue() + 7) % 7;
+//        LocalDateTime sessionStartDateTime = now.plusDays(daysUntil).toLocalDate().atTime(LocalTime.parse(time));
+//
+//        Date start = Date.from(sessionStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
+//        Date end = Date.from(sessionStartDateTime.plusMinutes(60).atZone(ZoneId.systemDefault()).toInstant());
+//
+//        return allTrainers.stream()
+//                .filter(trainer -> gymSessionRepository.findConflictingSessions(trainer.getTrainerId(), start, end).isEmpty())
+//                .map(trainer -> {
+//                    Map<String, Object> data = new HashMap<>();
+//                    data.put("id", trainer.getTrainerId());
+//                    data.put("name", trainer.getName());
+//                    return data;
+//                })
+//                .collect(Collectors.toList());
+//    }
+
     @GetMapping("/member/available-trainers")
     @ResponseBody
     public List<Map<String, Object>> getAvailableTrainers(
             @RequestParam("day") String day,
             @RequestParam("time") String time
     ) {
-        List<Trainer> allTrainers = trainerRepository.findAll();
-
         DayOfWeek selectedDay = DayOfWeek.valueOf(day.toUpperCase());
+        LocalTime selectedTime = LocalTime.parse(time);
+
         LocalDateTime now = LocalDateTime.now();
         int daysUntil = (selectedDay.getValue() - now.getDayOfWeek().getValue() + 7) % 7;
-        LocalDateTime sessionStartDateTime = now.plusDays(daysUntil).toLocalDate().atTime(LocalTime.parse(time));
+        LocalDate sessionDate = now.plusDays(daysUntil).toLocalDate();
+        LocalDateTime sessionStartDateTime = sessionDate.atTime(selectedTime);
+        LocalDateTime sessionEndDateTime = sessionStartDateTime.plusMinutes(60);
 
-        Date start = Date.from(sessionStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        Date end = Date.from(sessionStartDateTime.plusMinutes(60).atZone(ZoneId.systemDefault()).toInstant());
+        Date sessionStart = Date.from(sessionStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        Date sessionEnd = Date.from(sessionEndDateTime.atZone(ZoneId.systemDefault()).toInstant());
 
-        return allTrainers.stream()
-                .filter(trainer -> gymSessionRepository.findConflictingSessions(trainer.getTrainerId(), start, end).isEmpty())
-                .map(trainer -> {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("id", trainer.getTrainerId());
-                    data.put("name", trainer.getName());
-                    return data;
-                })
-                .collect(Collectors.toList());
+        List<Trainer> allTrainers = trainerRepository.findAll();
+        List<Map<String, Object>> available = new ArrayList<>();
+
+        for (Trainer trainer : allTrainers) {
+            // 1. Check if trainer is already booked
+            List<GymSession> conflicts = gymSessionRepository.findConflictingSessions(
+                    trainer.getTrainerId(), sessionStart, sessionEnd
+            );
+
+            if (!conflicts.isEmpty()) continue;
+
+            // 2. Check if trainer is available on the given day/time
+            boolean hasMatchingSlot = trainer.getAvailableSlots().stream().anyMatch(slot -> {
+                LocalTime start = LocalTime.parse(slot.getStartTime());
+                LocalTime end = LocalTime.parse(slot.getEndTime());
+
+                // Session must fully fit within the available time
+                LocalTime calculatedSessionStart = selectedTime;
+                LocalTime calculatedSessionEnd = selectedTime.plusMinutes(59);
+
+                return slot.getDayOfWeek().equals(selectedDay)
+                        && !calculatedSessionStart.isBefore(start)
+                        && !calculatedSessionEnd.isAfter(end);
+            });
+
+
+
+            if (hasMatchingSlot) {
+                Map<String, Object> t = new HashMap<>();
+                t.put("id", trainer.getTrainerId());
+                t.put("name", trainer.getName());
+                available.add(t);
+            }
+        }
+
+        return available;
     }
+
 
 
     @GetMapping("/member/check-available-trainers")
@@ -181,7 +234,9 @@ public class MemberController {
             @RequestParam("duration") int durationInMinutes // optional: or hardcode 60
     ) {
         LocalTime time = LocalTime.parse(timeStr);
+
         LocalDate now = LocalDate.now();
+
         LocalDate targetDate = now.with(TemporalAdjusters.nextOrSame(day));
         LocalDateTime startDateTime = LocalDateTime.of(targetDate, time);
         LocalDateTime endDateTime = startDateTime.plusMinutes(durationInMinutes);
@@ -231,7 +286,7 @@ public class MemberController {
                         .isSessionPerWeekPlan(true)
                         .build();
                 gymSessionRepository.save(session);
-                return "Session booked successfully for " + day + " at " + time + "with" + trainer.getName() + ".";
+                return "Session booked successfully for " + day + " at " + time + " with " + trainer.getName() + ".";
             } else {
                 return "Trainer is already booked at this time.";
             }
@@ -239,8 +294,6 @@ public class MemberController {
 
         return "Booking failed: member or trainer not found";
     }
-
-
 
     @GetMapping("/dashboard/find-trainers")
     @ResponseBody
@@ -273,6 +326,17 @@ public class MemberController {
                 .toList();
     }
 
+    @PostMapping("/member/cancel-session")
+    public String cancelSession(@RequestParam("sessionId") int sessionId, Authentication authentication) {
+        Optional<Member> member = memberRepository.findByUsername(authentication.getName());
+        Optional<GymSession> session = gymSessionRepository.findById(sessionId);
+
+        if (member.isPresent() && session.isPresent() && session.get().getMember().equals(member.get())) {
+            gymSessionRepository.delete(session.get());
+        }
+
+        return "redirect:/dashboard";
+    }
 
 
 }

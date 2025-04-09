@@ -110,8 +110,20 @@
 
 <div id="multiTrainerResults"></div>
 <hr>
-<h3>Booking Summary</h3>
-<div id="bookingSummary"></div>
+<div id="bookingSummary">
+    <h4>Your Booked Sessions</h4>
+    <ul>
+        <li th:each="memberSession : ${upcomingSessions}">
+            <span th:text="${memberSession.date}"></span> with
+            <span th:text="${memberSession.trainer.name}"></span>
+            <form method="post" th:action="@{/member/cancel-session}">
+                <input type="hidden" name="sessionId" th:value="${memberSession.sessionId}">
+                <button type="submit">Cancel</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
 
 
 <script>

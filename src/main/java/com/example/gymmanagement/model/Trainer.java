@@ -3,8 +3,6 @@ package com.example.gymmanagement.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +37,6 @@ public class Trainer {
             joinColumns = @JoinColumn(name = "trainer_id"),
             inverseJoinColumns = @JoinColumn(name = "day_time_slot_id")
     )
-    private Set<DayTimeSlot> availableSlots = new HashSet<>();
+    private Set<DayTimeSlot> availableSlots;
 
 }

@@ -81,18 +81,6 @@
             </select>
         </div>
 
-<!--        <div th:if="${member.paymentPlanType == 'SessionPerWeek'}">-->
-<!--            <h3>Select Preferred Day and Time Slots</h3>-->
-<!--            <div th:each="slot : ${availableSlots}">-->
-<!--                <label>-->
-<!--                    <input type="checkbox" name="preferredSlotIds"-->
-<!--                           th:value="${slot.id}"-->
-<!--                           th:checked="${member.preferredSlots != null and member.preferredSlots.contains(slot)}" />-->
-<!--                    <span th:text="${slot.dayOfWeek + ' - ' + slot.time}"></span>-->
-<!--                </label><br/>-->
-<!--            </div>-->
-<!--        </div>-->
-
         <button type="submit" th:text="${member.paymentPlanType == null ? 'Save Plan' : 'Update Plan'}"></button>
     </form>
 </div>
@@ -122,8 +110,20 @@
 
 <div id="multiTrainerResults"></div>
 <hr>
-<h3>Booking Summary</h3>
-<div id="bookingSummary"></div>
+<div id="bookingSummary">
+    <h4>Your Booked Sessions</h4>
+    <ul>
+        <li th:each="memberSession : ${upcomingSessions}">
+            <span th:text="${memberSession.date}"></span> with
+            <span th:text="${memberSession.trainer.name}"></span>
+            <form method="post" th:action="@{/member/cancel-session}">
+                <input type="hidden" name="sessionId" th:value="${memberSession.sessionId}">
+                <button type="submit">Cancel</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
 
 
 <script>
