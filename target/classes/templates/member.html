@@ -112,7 +112,7 @@
             </td>
             <td th:text="${day}"></td>
             <td>
-                <input type="time" name="timeMap[__${day}__]" disabled>
+                <input type="time" th:name="'timeMap[' + ${day} + ']'" disabled>
             </td>
         </tr>
     </table>
@@ -121,6 +121,10 @@
 </form>
 
 <div id="multiTrainerResults"></div>
+<hr>
+<h3>Booking Summary</h3>
+<div id="bookingSummary"></div>
+
 
 <script>
     function toggleTimeInput(checkbox) {
@@ -163,8 +167,6 @@
                         section.innerHTML += "<p>No trainers available.</p>";
                     } else {
                         const form = document.createElement("form");
-                        form.method = "post";
-                        form.action = "/member/select-trainer";
 
                         const select = document.createElement("select");
                         select.name = "trainerId";
@@ -181,13 +183,60 @@
                         hiddenDay.name = "day";
                         hiddenDay.value = day;
 
-                        form.appendChild(select);
-                        form.appendChild(hiddenDay);
+                        const hiddenTime = document.createElement("input");
+                        hiddenTime.type = "hidden";
+                        hiddenTime.name = "time";
+                        hiddenTime.value = time;
 
                         const submit = document.createElement("button");
                         submit.type = "submit";
-                        submit.textContent = "Choose Trainer";
+                        submit.textContent = "Book Session";
 
+                        form.onsubmit = function (e) {
+                            e.preventDefault();
+                            const trainerId = select.value;
+                            const trainerName = select.options[select.selectedIndex].text;
+
+                            fetch("/member/book-session", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded"
+                                },
+                                body: new URLSearchParams({
+                                    trainerId: trainerId,
+                                    day: day,
+                                    time: time
+                                })
+                            })
+                            .then(response => response.text())
+                            .then(result => {
+                                let summary = document.getElementById("bookingSummary");
+                                if (!summary) {
+                                    summary = document.createElement("div");
+                                    summary.id = "bookingSummary";
+                                    summary.innerHTML = "<h3>Booking Summary</h3>";
+                                    document.body.appendChild(summary);
+                                }
+
+                                // Convert DayOfWeek to upcoming date
+                                const today = new Date();
+                                const dayIndex = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"].indexOf(day.toUpperCase());
+                                let targetDate = new Date();
+                                targetDate.setDate(today.getDate() + ((7 + dayIndex - today.getDay()) % 7));
+                                const formattedDate = targetDate.toISOString().split('T')[0];
+
+                                const entry = document.createElement("div");
+                                entry.innerHTML = `
+                                    <p><strong>${day} (${formattedDate}) at ${time}</strong> - Trainer: ${trainerName} <br>Result: ${result}</p>
+                                    <button type="button" onclick="this.parentElement.remove()">Cancel</button>
+                                `;
+                                summary.appendChild(entry);
+                            });
+                        };
+
+                        form.appendChild(select);
+                        form.appendChild(hiddenDay);
+                        form.appendChild(hiddenTime);
                         form.appendChild(submit);
                         section.appendChild(form);
                     }
@@ -197,7 +246,6 @@
         });
     }
 </script>
-
 
 
 <!-- Logout -->
