@@ -2,6 +2,7 @@ package com.example.gymmanagement.repository;
 
 import com.example.gymmanagement.model.GymSession;
 import com.example.gymmanagement.model.Member;
+import com.example.gymmanagement.model.Trainer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,8 @@ import java.util.List;
 public interface GymSessionRepository extends JpaRepository<GymSession, Integer> {
 
     List<GymSession> findByMemberAndDateAfter(Member member, Date date);
+    List<GymSession> findByTrainerAndDateAfterOrderByDateAsc(Trainer trainer, Date date);
+
 
     @Query(value = "SELECT * FROM gym_sessions s " +
             "WHERE s.trainer_id = :trainerId AND " +

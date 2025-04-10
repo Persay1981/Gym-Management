@@ -52,8 +52,16 @@ public class DashboardController {
                 List<DayTimeSlot> allSlots = dayTimeSlotRepository.findAll();
                 if(optionalTrainer.isPresent()) {
                     Trainer trainer = optionalTrainer.get();
+
+                    // Fetch upcoming sessions
+                    List<GymSession> upcomingSessions = gymSessionRepository.findByTrainerAndDateAfterOrderByDateAsc(
+                            trainer,
+                            new Date()
+                    );
+
                     model.addAttribute("trainer", trainer);
                     model.addAttribute("availableSlots", allSlots);
+                    model.addAttribute("upcomingSessions", upcomingSessions);
                     return "trainer";
                 }
                 else {

@@ -56,7 +56,14 @@
     </form>
 </div>
 
-
+<h3>Upcoming Sessions</h3>
+<ul>
+    <li th:each="memberSession : ${upcomingSessions}">
+        <span th:text="${#dates.format(memberSession.date, 'EEE, MMM d yyyy HH:mm')}"></span>
+        with
+        <span th:text="${memberSession.member.name}"></span>
+    </li>
+</ul>
 
 </body>
 </html>
