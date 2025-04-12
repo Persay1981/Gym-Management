@@ -24,7 +24,7 @@ public class Member {
     private String name;
     private String contact;
     private String paymentPlanType; // "SessionPerWeek" or "Package"
-    private int remainingSessions; // For SessionPerWeek Plan
+    private int carriedOverSessions;
     private String username;
 
     @Enumerated(EnumType.STRING)

@@ -72,10 +72,9 @@ public class SignUpController {
         member.setPaymentPlanType(userDTO.getPaymentPlanType());
 
         if ("SessionPerWeek".equalsIgnoreCase(member.getPaymentPlanType())) {
-            member.setRemainingSessions(0);
             member.setGymPackage(null);
         } else if ("Package".equalsIgnoreCase(member.getPaymentPlanType())) {
-            member.setRemainingSessions(0); // Not used but stored for consistency
+            member.setCarriedOverSessions(0); // Not used but stored for consistency
         }
         return member;
     }

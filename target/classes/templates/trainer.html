@@ -56,6 +56,38 @@
     </form>
 </div>
 
+<h3>Upcoming Sessions</h3>
+<ul>
+    <li th:each="memberSession : ${upcomingSessions}">
+        <span th:text="${#dates.format(memberSession.date, 'EEE, MMM d yyyy HH:mm')}"></span>
+        with
+        <span th:text="${memberSession.member.name}"></span>
+    </li>
+</ul>
+
+<h3>Propose New Package</h3>
+<form th:action="@{/trainer/propose-package}" method="post">
+    <label>Package Name:</label>
+    <input type="text" name="name" required><br>
+
+    <label>Duration (weeks):</label>
+    <input type="number" name="durationWeeks" min="1" required><br>
+
+    <label>Price:</label>
+    <input type="number" name="price" min="0" required><br>
+
+    <label>Days per Week:</label>
+    <input type="number" name="daysPerWeek" min="1" max="7" required><br>
+
+    <h4>Workout Schedule:</h4>
+    <div th:each="day : ${T(java.time.DayOfWeek).values()}">
+        <label th:for="${day}" th:text="${day} + ':'"></label>
+        <input type="text" th:name="'workoutSchedule[' + ${day} + ']'" placeholder="e.g. Leg Day">
+        <br>
+    </div>
+
+    <button type="submit">Submit for Approval</button>
+</form>
 
 
 </body>

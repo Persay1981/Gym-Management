@@ -36,5 +36,51 @@
     </tbody>
 </table>
 
+<div th:if="${pendingPackages != null and !pendingPackages.isEmpty()}">
+    <h2>Pending Package Proposals</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Duration</th>
+            <th>Price</th>
+            <th>Schedule</th>
+            <th>Trainer</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="pkg : ${pendingPackages}">
+            <td th:text="${pkg.name}"></td>
+            <td th:text="${pkg.durationWeeks + ' weeks'}"></td>
+            <td th:text="'₹' + ${pkg.price}"></td>
+
+            <td>
+                <ul>
+                    <li th:each="entry : ${pkg.workoutSchedule.entrySet()}"
+                        th:text="${entry.key} + ' (' + ${entry.value} + ')'">
+                    </li>
+                </ul>
+            </td>
+
+            <td th:text="${pkg.proposedBy.name}"></td>
+
+            <td>
+                <form th:action="@{/admin/approve-package}" method="post" style="display:inline;">
+                    <input type="hidden" name="id" th:value="${pkg.id}">
+                    <button type="submit">Approve</button>
+                </form>
+                <form th:action="@{/admin/reject-package}" method="post" style="display:inline;">
+                    <input type="hidden" name="id" th:value="${pkg.id}">
+                    <button type="submit">Reject</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
 </body>
 </html>

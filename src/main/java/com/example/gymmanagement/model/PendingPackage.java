@@ -1,23 +1,21 @@
 package com.example.gymmanagement.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.DayOfWeek;
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity
-@Table(name = "packages")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Package {
+@Getter
+@Setter
+public class PendingPackage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int packageId;
+    private Long id;
 
     private String name;
     private int durationWeeks;
@@ -25,10 +23,14 @@ public class Package {
 
     private int sessionsPerWeek;
 
-    // Map of DayOfWeek to workout description
+    // Map each day to a workout split, e.g. MONDAY -> "Leg Day"
     @ElementCollection
-    @CollectionTable(name = "package_workout_schedule", joinColumns = @JoinColumn(name = "package_id"))
+    @CollectionTable(name = "pending_package_schedule", joinColumns = @JoinColumn(name = "package_id"))
     @MapKeyColumn(name = "day_of_week")
-    @Column(name = "workout_type")
+    @Column(name = "workout_split")
     private Map<DayOfWeek, String> workoutSchedule = new HashMap<>();
+
+    @ManyToOne
+    private Trainer proposedBy;
+
 }

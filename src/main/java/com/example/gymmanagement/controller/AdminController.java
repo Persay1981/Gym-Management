@@ -1,18 +1,17 @@
 package com.example.gymmanagement.controller;
 
-import com.example.gymmanagement.model.PendingTrainer;
-import com.example.gymmanagement.model.Role;
-import com.example.gymmanagement.model.Trainer;
-import com.example.gymmanagement.model.User;
-import com.example.gymmanagement.repository.PendingTrainerRepository;
-import com.example.gymmanagement.repository.TrainerRepository;
-import com.example.gymmanagement.repository.UserRepository;
+import com.example.gymmanagement.model.*;
+import com.example.gymmanagement.model.Package;
+import com.example.gymmanagement.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -30,12 +29,37 @@ public class AdminController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-//    @GetMapping("/admin/dashboard")
-//    public String showDashboard(Model model) {
-//        List<PendingTrainer> pendingTrainers = pendingTrainerRepository.findAll();
-//        model.addAttribute("pendingTrainers", pendingTrainers);
-//        return "admin";
-//    }
+    @Autowired
+    private PendingPackageRepository pendingPackageRepository;
+
+    @Autowired
+    private PackageRepository packageRepository;
+
+    @PostMapping("/admin/approve-package")
+    public String approvePackage(@RequestParam Long id) {
+        Optional<PendingPackage> optional = pendingPackageRepository.findById(id);
+        if (optional.isPresent()) {
+            PendingPackage pending = optional.get();
+
+            Package pkg = new Package();
+            pkg.setName(pending.getName());
+            pkg.setDurationWeeks(pending.getDurationWeeks());
+            pkg.setPrice(pending.getPrice());
+
+            Map<DayOfWeek, String> workoutSchedule = new HashMap<>(pending.getWorkoutSchedule());
+            pkg.setWorkoutSchedule(workoutSchedule);
+
+            packageRepository.save(pkg);
+            pendingPackageRepository.delete(pending);
+        }
+        return "redirect:/dashboard";
+    }
+
+    @PostMapping("/admin/reject-package")
+    public String rejectPackage(@RequestParam Long id) {
+        pendingPackageRepository.deleteById(id);
+        return "redirect:/dashboard";
+    }
 
     @PostMapping("/admin/approveTrainer")
     public String approveTrainer(@RequestParam("username") String username) {

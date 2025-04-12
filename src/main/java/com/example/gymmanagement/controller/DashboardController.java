@@ -25,6 +25,9 @@ public class DashboardController {
     private PackageRepository packageRepository;
 
     @Autowired
+    private PendingPackageRepository pendingPackageRepository;
+
+    @Autowired
     private PendingTrainerRepository pendingTrainerRepository;
 
     @Autowired
@@ -45,6 +48,7 @@ public class DashboardController {
         switch (role) {
             case "ROLE_ADMIN":
                 List<PendingTrainer> pendingTrainers = pendingTrainerRepository.findAll();
+                model.addAttribute("pendingPackages", pendingPackageRepository.findAll());
                 model.addAttribute("pendingTrainers", pendingTrainers);
                 return "admin";
             case "ROLE_TRAINER":
