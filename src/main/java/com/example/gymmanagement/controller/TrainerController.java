@@ -1,11 +1,13 @@
 package com.example.gymmanagement.controller;
 
 import com.example.gymmanagement.model.DayTimeSlot;
+import com.example.gymmanagement.model.GymSession;
 import com.example.gymmanagement.model.PendingPackage;
 import com.example.gymmanagement.model.Trainer;
 import com.example.gymmanagement.repository.DayTimeSlotRepository;
 import com.example.gymmanagement.repository.TrainerRepository;
 import com.example.gymmanagement.repository.PendingPackageRepository;
+import com.example.gymmanagement.repository.GymSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.security.Principal;
 import java.time.DayOfWeek;
 import java.util.*;
 
@@ -29,10 +30,13 @@ public class TrainerController {
     @Autowired
     private PendingPackageRepository pendingPackageRepository;
 
+    @Autowired
+    private GymSessionRepository gymSessionRepository;
+
     @PostMapping("/trainer/propose-package")
     public String proposePackage(@ModelAttribute PendingPackage pendingPackage,
-                                 Authentication authetication) {
-        Optional<Trainer> optionalTrainer = trainerRepository.findByUsername(authetication.getName());
+                                 Authentication authentication) {
+        Optional<Trainer> optionalTrainer = trainerRepository.findByUsername(authentication.getName());
         if (optionalTrainer.isPresent()) {
             Trainer trainer = optionalTrainer.get();
             pendingPackage.setProposedBy(trainer);
@@ -81,4 +85,16 @@ public class TrainerController {
 
         return "redirect:/dashboard";
     }
+
+    @PostMapping("/trainer/confirm-attendance")
+    public String confirmAttendance(@RequestParam int sessionId) {
+        Optional<GymSession> sessionOptional = gymSessionRepository.findById(sessionId);
+        if (sessionOptional.isPresent()) {
+            GymSession session = sessionOptional.get();
+            session.setAttended(true); // You should have this field in your GymSession model
+            gymSessionRepository.save(session);
+        }
+        return "redirect:/dashboard"; // or wherever you show the trainer dashboard
+    }
+
 }

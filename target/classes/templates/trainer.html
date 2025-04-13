@@ -4,7 +4,7 @@
     <title>Trainer Dashboard</title>
 </head>
 <body>
-<h1>Welcome, Trainer!</h1>
+<h1>Welcome, Trainer <span th:text="${trainer.name}"></span></h1>
 
 <a th:href="@{/logout}">Logout</a>
 
@@ -62,8 +62,22 @@
         <span th:text="${#dates.format(memberSession.date, 'EEE, MMM d yyyy HH:mm')}"></span>
         with
         <span th:text="${memberSession.member.name}"></span>
+
+        <span th:if="${memberSession.attended}" style="margin-left: 10px; color: green; font-weight: bold;">
+            ✔ Confirmed
+        </span>
+
+        <form th:if="${!memberSession.attended}"
+              th:action="@{/trainer/confirm-attendance}"
+              method="post"
+              style="display:inline; margin-left: 10px;">
+            <input type="hidden" name="sessionId" th:value="${memberSession.sessionId}" />
+            <button type="submit">Confirm Attendance</button>
+        </form>
     </li>
 </ul>
+
+
 
 <h3>Propose New Package</h3>
 <form th:action="@{/trainer/propose-package}" method="post">

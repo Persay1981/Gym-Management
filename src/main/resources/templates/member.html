@@ -21,7 +21,7 @@
 <h1>Welcome, <span th:text="${member.name}"></span>!</h1>
 
 <!-- Trainer Selection -->
-<div>
+<div th:if="${member.paymentPlanType != 'SessionPerWeek'}">
     <h2>Your Trainer</h2>
     <div th:if="${member.trainer != null}">
         <p>Current Trainer: <span th:text="${member.trainer.name}"></span></p>
@@ -253,6 +253,9 @@
     <p th:text="'Sessions used this month: ' + ${usedSessions} + ' / ' + ${totalSessionsThisMonth}"></p>
     <p th:text="'Carried over from previous months: ' + ${member.carriedOverSessions}"></p>
 </div>
+
+<!-- Payment -->
+<a href="/member/payment-summary">Payment Summary</a>
 
 <!-- Logout -->
 <div>

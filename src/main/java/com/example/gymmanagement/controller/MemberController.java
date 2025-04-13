@@ -7,18 +7,20 @@ import com.example.gymmanagement.repository.PackageRepository;
 import com.example.gymmanagement.repository.TrainerRepository;
 import com.example.gymmanagement.repository.DayTimeSlotRepository;
 import com.example.gymmanagement.repository.GymSessionRepository;
+import com.example.gymmanagement.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.time.*;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 public class MemberController {
@@ -38,23 +40,8 @@ public class MemberController {
     @Autowired
     private GymSessionRepository gymSessionRepository;
 
-//    @GetMapping("/member")
-//    public String memberDashboard(Authentication authentication, Model model) {
-//        String username = authentication.getName();
-//        Optional<Member> optionalMember = memberRepository.findByUsername(username);
-//
-//        if (optionalMember.isPresent()) {
-//            Member member = optionalMember.get();
-//            List<Trainer> trainers = trainerRepository.findAll(); // Make sure this returns a non-null list
-//
-//            model.addAttribute("member", member);
-//            model.addAttribute("trainers", trainers);
-//
-//            return "member";
-//        } else {
-//            return "error";
-//        }
-//    }
+    @Autowired
+    private PaymentService paymentService;
 
     @PostMapping("/member/choose-trainer")
     public String chooseTrainer(Authentication authentication, @RequestParam("trainerId") int trainerId) {
@@ -141,33 +128,6 @@ public class MemberController {
         return "redirect:/dashboard";
     }
 
-//    @GetMapping("/member/available-trainers")
-//    @ResponseBody
-//    public List<Map<String, Object>> getAvailableTrainers(
-//            @RequestParam("day") String day,
-//            @RequestParam("time") String time
-//    ) {
-//        List<Trainer> allTrainers = trainerRepository.findAll();
-//
-//        DayOfWeek selectedDay = DayOfWeek.valueOf(day.toUpperCase());
-//        LocalDateTime now = LocalDateTime.now();
-//        int daysUntil = (selectedDay.getValue() - now.getDayOfWeek().getValue() + 7) % 7;
-//        LocalDateTime sessionStartDateTime = now.plusDays(daysUntil).toLocalDate().atTime(LocalTime.parse(time));
-//
-//        Date start = Date.from(sessionStartDateTime.atZone(ZoneId.systemDefault()).toInstant());
-//        Date end = Date.from(sessionStartDateTime.plusMinutes(60).atZone(ZoneId.systemDefault()).toInstant());
-//
-//        return allTrainers.stream()
-//                .filter(trainer -> gymSessionRepository.findConflictingSessions(trainer.getTrainerId(), start, end).isEmpty())
-//                .map(trainer -> {
-//                    Map<String, Object> data = new HashMap<>();
-//                    data.put("id", trainer.getTrainerId());
-//                    data.put("name", trainer.getName());
-//                    return data;
-//                })
-//                .collect(Collectors.toList());
-//    }
-
     @GetMapping("/member/available-trainers")
     @ResponseBody
     public List<Map<String, Object>> getAvailableTrainers(
@@ -226,29 +186,29 @@ public class MemberController {
 
 
 
-    @GetMapping("/member/check-available-trainers")
-    @ResponseBody
-    public List<Trainer> checkAvailableTrainers(
-            @RequestParam("day") DayOfWeek day,
-            @RequestParam("time") String timeStr,
-            @RequestParam("duration") int durationInMinutes // optional: or hardcode 60
-    ) {
-        LocalTime time = LocalTime.parse(timeStr);
-
-        LocalDate now = LocalDate.now();
-
-        LocalDate targetDate = now.with(TemporalAdjusters.nextOrSame(day));
-        LocalDateTime startDateTime = LocalDateTime.of(targetDate, time);
-        LocalDateTime endDateTime = startDateTime.plusMinutes(durationInMinutes);
-
-        Date start = java.sql.Timestamp.valueOf(startDateTime);
-        Date end = java.sql.Timestamp.valueOf(endDateTime);
-
-        List<Trainer> all = trainerRepository.findAll();
-        return all.stream()
-                .filter(t -> gymSessionRepository.findConflictingSessions(t.getTrainerId(), start, end).isEmpty())
-                .collect(Collectors.toList());
-    }
+//    @GetMapping("/member/check-available-trainers")
+//    @ResponseBody
+//    public List<Trainer> checkAvailableTrainers(
+//            @RequestParam("day") DayOfWeek day,
+//            @RequestParam("time") String timeStr,
+//            @RequestParam("duration") int durationInMinutes // optional: or hardcode 60
+//    ) {
+//        LocalTime time = LocalTime.parse(timeStr);
+//
+//        LocalDate now = LocalDate.now();
+//
+//        LocalDate targetDate = now.with(TemporalAdjusters.nextOrSame(day));
+//        LocalDateTime startDateTime = LocalDateTime.of(targetDate, time);
+//        LocalDateTime endDateTime = startDateTime.plusMinutes(durationInMinutes);
+//
+//        Date start = java.sql.Timestamp.valueOf(startDateTime);
+//        Date end = java.sql.Timestamp.valueOf(endDateTime);
+//
+//        List<Trainer> all = trainerRepository.findAll();
+//        return all.stream()
+//                .filter(t -> gymSessionRepository.findConflictingSessions(t.getTrainerId(), start, end).isEmpty())
+//                .collect(Collectors.toList());
+//    }
 
     @PostMapping("/member/book-session")
     @ResponseBody
@@ -338,5 +298,34 @@ public class MemberController {
         return "redirect:/dashboard";
     }
 
+    @GetMapping("/member/payment-summary")
+    public String getPaymentSummary(Model model, Authentication authentication) {
+        Optional<Member> optionalMember = memberRepository.findByUsername(authentication.getName());
+
+        if (optionalMember.isEmpty()) {
+            return "error";
+        }
+
+        Member member = optionalMember.get();
+        double amountDue = paymentService.calculatePayment(member);
+
+        model.addAttribute("member", member);
+        model.addAttribute("amountDue", amountDue);
+
+        return "payment-summary";
+    }
+
+    @PostMapping("/member/pay")
+    public String processPayment(@RequestParam double amount, Authentication authentication, RedirectAttributes redirectAttributes) {
+        Optional<Member> member = memberRepository.findByUsername(authentication.getName());
+
+        // Simulate payment processing
+        if (member.isPresent()) {
+            // You can store a payment record, or mark as paid
+            redirectAttributes.addFlashAttribute("successMessage", "Payment of ₹" + amount + " was successful!");
+        }
+
+        return "redirect:/dashboard";
+    }
 
 }

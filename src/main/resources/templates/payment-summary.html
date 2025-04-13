@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Payment Summary</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}" />
+  <style>
+    .summary-box {
+        width: 50%;
+        margin: auto;
+        padding: 1.5em;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #ccc;
+        background-color: #f9f9f9;
+        margin-top: 2em;
+        text-align: center;
+    }
+    h2 {
+        margin-bottom: 1em;
+    }
+    .amount {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .btn {
+        padding: 0.6em 1.2em;
+        font-size: 1em;
+        text-decoration: none;
+        color: #fff;
+        background-color: #3498db;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 0.5em;
+    }
+    .btn:hover {
+        background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+<div class="summary-box">
+  <h2>Payment Summary</h2>
+
+  <p><strong>Member:</strong> <span th:text="${member.name}"></span></p>
+  <p><strong>Plan Type:</strong> <span th:text="${member.paymentPlanType}"></span></p>
+
+  <p class="amount">Amount Due: ₹<span th:text="${amountDue}"></span></p>
+
+  <form th:action="@{/member/pay}" method="post">
+    <input type="hidden" name="amount" th:value="${amountDue}" />
+    <button type="submit" class="btn">Pay Now</button>
+  </form>
+
+  <div style="margin-top: 2em;">
+    <a th:href="@{/dashboard}" class="btn">Back to Dashboard</a>
+  </div>
+</div>
+
+</body>
+</html>

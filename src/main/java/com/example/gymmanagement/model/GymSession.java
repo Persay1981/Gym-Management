@@ -32,5 +32,7 @@ public class GymSession {
 
     private int duration; // Duration of the session in minutes
 
+    private boolean attended;
+
     private boolean isSessionPerWeekPlan; // True if part of the Session-per-Week Plan
 }
