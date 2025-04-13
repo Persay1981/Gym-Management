@@ -18,6 +18,8 @@ public interface GymSessionRepository extends JpaRepository<GymSession, Integer>
 
     List<GymSession> findByMemberAndDateAfter(Member member, Date date);
     List<GymSession> findByTrainerAndDateAfterOrderByDateAsc(Trainer trainer, Date date);
+    int countByMemberAndDateAfter(Member member, Date date);
+
 
 
     @Query(value = "SELECT * FROM gym_sessions s " +

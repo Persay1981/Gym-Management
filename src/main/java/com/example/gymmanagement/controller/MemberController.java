@@ -307,6 +307,7 @@ public class MemberController {
         }
 
         Member member = optionalMember.get();
+        paymentService.updateRemainingSessions(member);
         double amountDue = paymentService.calculatePayment(member);
 
         model.addAttribute("member", member);

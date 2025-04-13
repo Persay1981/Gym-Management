@@ -15,6 +15,16 @@
         }
 
         window.unload = togglePlanFields;
+        var showPaymentButton = false;
+        document.addEventListener("DOMContentLoaded", function () {
+    if (typeof showPaymentButton !== "undefined" && !showPaymentButton) {
+        document.getElementById("confirmPaymentBtn").style.display = "inline-block";
+    }
+    else {
+        document.getElementById("confirmPaymentBtn").style.display = "none";
+    }
+});
+
     </script>
 </head>
 <body>
@@ -116,6 +126,9 @@
     </form>
 
     <div id="multiTrainerResults"></div>
+    <button id="confirmPaymentBtn" type="button" class="btn btn-primary" onclick="window.location.href='/member/payment-summary'">
+        Confirm Payment
+    </button>
     <hr>
     <div id="bookingSummary">
         <h4>Your Booked Sessions</h4>
@@ -253,9 +266,6 @@
     <p th:text="'Sessions used this month: ' + ${usedSessions} + ' / ' + ${totalSessionsThisMonth}"></p>
     <p th:text="'Carried over from previous months: ' + ${member.carriedOverSessions}"></p>
 </div>
-
-<!-- Payment -->
-<a href="/member/payment-summary">Payment Summary</a>
 
 <!-- Logout -->
 <div>
