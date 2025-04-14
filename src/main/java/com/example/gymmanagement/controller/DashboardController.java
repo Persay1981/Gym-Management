@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 @Controller
 public class DashboardController {
@@ -32,9 +33,6 @@ public class DashboardController {
 
     @Autowired
     private DayTimeSlotRepository dayTimeSlotRepository;
-
-//    @Autowired
-//    private TrainerSlotRepository trainerSlotRepository;
 
     @Autowired
     private GymSessionRepository gymSessionRepository;
@@ -85,6 +83,7 @@ public class DashboardController {
                     model.addAttribute("packages", packageRepository.findAll());
                     model.addAttribute("availableSlots", availableSlots);
                     model.addAttribute("upcomingSessions", upcomingSessions);
+                    model.addAttribute("today", LocalDate.now());
                     return "member";
                 }
                 else {

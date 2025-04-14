@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Trainer Schedule</title>
+</head>
+<body>
+<button onclick="window.location.href='/dashboard'">Dashboard</button>
+
+<h2>Your Schedule</h2>
+
+<div th:if="${#lists.isEmpty(groupedSchedule)}">
+  <p>No schedule found.</p>
+</div>
+
+<div th:unless="${#lists.isEmpty(groupedSchedule)}">
+  <ul>
+    <li th:each="entry : ${groupedSchedule}">
+      <strong th:text="${#temporals.format(entry.key, 'EEEE, MMM d yyyy')}"></strong>
+      <ul>
+        <li th:each="item : ${entry.value}" th:if="${not #strings.isEmpty(item.workoutDescription)}">
+          <span th:text="'Member: ' + ${item.memberName}"></span> |
+          <span th:text="'Plan: ' + ${item.packageName}"></span> |
+          <span th:text="'Workout: ' + ${item.workoutDescription}"></span>
+          <form th:action="@{/trainer/confirm-package-attendance}" method="post" style="display:inline;">
+            <input type="hidden" name="memberId" th:value="${item.memberId}">
+            <input type="hidden" name="date" th:value="${item.formattedDate}">
+            <button type="submit" th:if="!${item.attended}">Mark Attended</button>
+            <span th:if="${item.attended}">✔ Attended</span>
+          </form>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+</body>
+</html>

@@ -23,6 +23,12 @@
     else {
         document.getElementById("confirmPaymentBtn").style.display = "none";
     }
+    if (typeof showPaymentButton !== "undefined" && !showPaymentButton) {
+        document.getElementById("confirmPaymentBtn2").style.display = "inline-block";
+    }
+    else {
+        document.getElementById("confirmPaymentBtn2").style.display = "none";
+    }
 });
 
     </script>
@@ -94,6 +100,8 @@
                 </option>
             </select>
 
+            <label for="startDate">Choose start date:</label>
+            <input type="date" id="startDate" name="startDate" th:attr="min=${today}">
         </div>
 
         <button type="submit" th:text="${member.paymentPlanType == null ? 'Save Plan' : 'Update Plan'}"></button>
@@ -260,7 +268,10 @@
 </div>
 
 <!-- Package Plan Usage Summary -->
-<div th:if="${member.paymentPlanType == 'Package' and member.gymPackage.packageId != null}">
+<div th:if="${member.paymentPlanType == 'Package' and member.gymPackage != null and member.gymPackage.packageId != null}">
+    <button id="confirmPaymentBtn2" type="button" class="btn btn-primary" onclick="window.location.href='/member/payment-summary'">
+        Confirm Payment
+    </button>
     <h3>Package Usage Summary</h3>
     <p th:text="'Current Package: ' + ${member.gymPackage.name}"></p>
     <p th:text="'Sessions used this month: ' + ${usedSessions} + ' / ' + ${totalSessionsThisMonth}"></p>

@@ -3,6 +3,7 @@ package com.example.gymmanagement.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,7 @@ public class Member {
     private int remainingSessions;
     private int carriedOverSessions;
     private String username;
+    private boolean eligibleForPackageReward;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -50,4 +52,17 @@ public class Member {
     )
     private Set<DayTimeSlot> preferredSlots = new HashSet<>();
 
+    @Column(name = "package_start_date")
+    private LocalDate packageStartDate;
+
+    @ElementCollection
+    @CollectionTable(name = "member_package_attendance", joinColumns = @JoinColumn(name = "member_id"))
+    @Column(name = "attended_date")
+    private Set<LocalDate> packageAttendances = new HashSet<>();
+
+    private int packageAttendanceCount;
+
+    public Boolean getEligibleForPackageReward() {
+        return eligibleForPackageReward;
+    }
 }

@@ -40,6 +40,11 @@
 </head>
 <body>
 
+<div th:if="${member.eligibleForPackageReward}">
+  <p class="reward-message">🎉 Congrats! You earned a reward for full attendance. A discount has been applied.</p>
+</div>
+
+
 <div class="summary-box">
   <h2>Payment Summary</h2>
 

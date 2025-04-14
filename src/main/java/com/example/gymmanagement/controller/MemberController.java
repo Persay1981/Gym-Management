@@ -9,6 +9,7 @@ import com.example.gymmanagement.repository.DayTimeSlotRepository;
 import com.example.gymmanagement.repository.GymSessionRepository;
 import com.example.gymmanagement.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.security.Principal;
 import java.time.*;
 import java.util.*;
 
@@ -80,7 +80,9 @@ public class MemberController {
             Authentication authentication,
             @RequestParam("paymentPlanType") String paymentPlanType,
             @RequestParam(value = "packageId", required = false) Integer packageId,
-            @RequestParam(value = "preferredSlotIds", required = false) List<Integer> preferredSlotIds
+            @RequestParam(value = "preferredSlotIds", required = false) List<Integer> preferredSlotIds,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate
+
     ) {
         String username = authentication.getName();
         Optional<Member> optionalMember = memberRepository.findByUsername(username);
@@ -91,6 +93,14 @@ public class MemberController {
 
             if ("Package".equals(paymentPlanType) && packageId != null) {
                 packageRepository.findById(packageId).ifPresent(member::setGymPackage);
+                if(startDate != null) {
+                    member.setPackageStartDate(startDate);
+                }
+                else {
+                    member.setPackageStartDate(LocalDate.now());
+                }
+                memberRepository.save(member);
+                return "redirect:/member/payment-summary";
             }
 
             if ("SessionPerWeek".equals(paymentPlanType)) {
@@ -183,32 +193,6 @@ public class MemberController {
 
         return available;
     }
-
-
-
-//    @GetMapping("/member/check-available-trainers")
-//    @ResponseBody
-//    public List<Trainer> checkAvailableTrainers(
-//            @RequestParam("day") DayOfWeek day,
-//            @RequestParam("time") String timeStr,
-//            @RequestParam("duration") int durationInMinutes // optional: or hardcode 60
-//    ) {
-//        LocalTime time = LocalTime.parse(timeStr);
-//
-//        LocalDate now = LocalDate.now();
-//
-//        LocalDate targetDate = now.with(TemporalAdjusters.nextOrSame(day));
-//        LocalDateTime startDateTime = LocalDateTime.of(targetDate, time);
-//        LocalDateTime endDateTime = startDateTime.plusMinutes(durationInMinutes);
-//
-//        Date start = java.sql.Timestamp.valueOf(startDateTime);
-//        Date end = java.sql.Timestamp.valueOf(endDateTime);
-//
-//        List<Trainer> all = trainerRepository.findAll();
-//        return all.stream()
-//                .filter(t -> gymSessionRepository.findConflictingSessions(t.getTrainerId(), start, end).isEmpty())
-//                .collect(Collectors.toList());
-//    }
 
     @PostMapping("/member/book-session")
     @ResponseBody
@@ -318,11 +302,14 @@ public class MemberController {
 
     @PostMapping("/member/pay")
     public String processPayment(@RequestParam double amount, Authentication authentication, RedirectAttributes redirectAttributes) {
-        Optional<Member> member = memberRepository.findByUsername(authentication.getName());
+        Optional<Member> optionalMember = memberRepository.findByUsername(authentication.getName());
 
         // Simulate payment processing
-        if (member.isPresent()) {
-            // You can store a payment record, or mark as paid
+        if (optionalMember.isPresent()) {
+            Member member = optionalMember.get();
+            member.setEligibleForPackageReward(false);
+            member.setPackageAttendanceCount(0);
+            memberRepository.save(member);
             redirectAttributes.addFlashAttribute("successMessage", "Payment of ₹" + amount + " was successful!");
         }
 

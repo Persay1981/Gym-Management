@@ -10,6 +10,15 @@ public class PackagePlan implements PaymentPlan {
 
     @Override
     public double calculateCost(Member member) {
-        return gymPackage.getPrice();
+        double basePrice =  gymPackage.getPrice();
+
+        // Apply reward discount if eligible
+        if (Boolean.TRUE.equals(member.getEligibleForPackageReward())) {
+            // Example: 10% discount
+            System.out.println("AAAAAAAA");
+            basePrice = basePrice * 0.9;
+        }
+
+        return basePrice;
     }
 }
